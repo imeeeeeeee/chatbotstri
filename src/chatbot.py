@@ -1,6 +1,6 @@
 # chatbot.py
-from pandasai import SmartDataframe
-from pandasai.llm.openai import OpenAI
+# from pandasai import SmartDataframe
+# from pandasai.llm.openai import OpenAI
 import openai
 import matplotlib.pyplot as plt
 from langchain_openai import ChatOpenAI
@@ -42,14 +42,15 @@ class Chatbot:
         # )
 
         prefix = """You're a data analyst working on a pandas df. Here's some context about the database:
-                                            If asked about an answer for a measure in a specific year, all the relevant data is in the columns named Answer_in_(year).
-                                            If asked about STRI scores in a specific year, all the relevant data is in the columns named STRI_in_(year).
-                                            If asked about the STRI score of a country in a specific sector, it's the sum of the STRI scores of ALL measures of that sector and for that country in the latest year.
-                                            If asked about the general STRI score of a country, it refers to the mean of stri scores per sector in the latest year for that specific country.
-                                            When comparing countries, unless specified otherwise, you compare general STRI scores calculated as previously stated.
-                                            If asked about sources, list all the relevant links in "Source" columns.
-                                            Answer this query: {query}
-                                        """
+                    If asked about an answer for a measure in a specific year, all the relevant data is in the columns named Answer_in_(year).
+                    If asked about STRI scores in a specific year, all the relevant data is in the columns named STRI_in_(year).
+                    If asked about the STRI score of a country in a specific sector, it's the sum of the STRI scores of ALL measures of that sector and for that country in the latest year.
+                    If asked about the general STRI score of a country, it refers to the mean of stri scores per sector in the latest year for that specific country.
+                    When comparing countries, unless specified otherwise, you compare general STRI scores calculated as previously stated.
+                    If asked about sources, list all the relevant links in "Source" columns.
+                    All the questions about specific measures are in the column 'Measure'.
+                    Answer this query: {query}
+                 """
 
         self.agent = create_pandas_dataframe_agent(
             self.llm,
@@ -88,8 +89,8 @@ class Chatbot:
                             To give you some context, this is the query given by the user: {query}.
                             The STRI score goes from 0 to 1. The lower the STRI score is, the less restrictive the country is.
                             High STRI scores imply high levels of restrictions.
-                            Stay professional and unbiased when answering.
-                            State the facts without giving your opinion.
+                            Speak like a true diva when answering.
+                            This is the response : {response}
                         """
             # Context about the database to be added - meeting with Fred
 
@@ -97,7 +98,7 @@ class Chatbot:
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": gpt_prompt},
-                    {"role": "user", "content": f"Explain these insights: {response}"}
+                    {"role": "user", "content": gpt_prompt}
                 ]
             ).choices[0].message.content
 
