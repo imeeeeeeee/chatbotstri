@@ -26,6 +26,7 @@ def load_data(path, sample_frac=0.15):
             df = pd.read_csv(path, low_memory=False)
         elif ext in ('.xls', '.xlsx'):
             df = pd.read_excel(path)
+            return df
         else:
             raise ValueError(f"Unsupported file format: {ext}")
         
@@ -74,12 +75,44 @@ def _clean_dataframe(df):
     # Convert dtypes to Arrow-compatible types
     return df.convert_dtypes()
 
+def restructure_db(path):
+    try:
+        # Load your Excel file
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"File not found at {path}")
+        
+        df = pd.read_excel(path)  # Update with the actual file path
 
+        # Check if required columns exist
+        required_columns = ['SECT', 'CLASS', 'COU', 'YEA', 'STRI']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {', '.join(missing_columns)}")
 
-def _fix_string_column(series):
-    """Ensure consistent string formatting to avoid Arrow errors"""
-    return (
-        series.astype(str)
-        .str.strip()
-        .replace({'nan': None, 'None': None, '': None})  # Handle missing values
-    )
+        # Group by SECT, CLASS, COU and aggregate YEARS and SCORES, sorted by year
+        df_grouped = (
+            df.sort_values('YEA')  # make sure it's sorted chronologically
+            .groupby(['SECT', 'CLASS', 'COU'])
+            .agg({
+                'YEA': lambda x: list(x),
+                'STRI': lambda x: list(x)
+            })
+            .reset_index()
+        )
+
+        # Rename columns
+        df_grouped.rename(columns={
+            'CLASS': 'CLASS',
+            'COU': 'COUNTRY',
+            'YEA': 'YEARS',
+            'STRI': 'SCORES'
+        }, inplace=True)
+
+        return df_grouped
+
+    except FileNotFoundError as fnf_error:
+        raise RuntimeError(f"File error: {str(fnf_error)}")
+    except ValueError as val_error:
+        raise RuntimeError(f"Data validation error: {str(val_error)}")
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error: {str(e)}")
