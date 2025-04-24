@@ -1,4 +1,8 @@
 streamlit
 pandas
-pandasai
-langchain-ollama
+langchain
+logging
+datetime
+json
+venv
+openai
