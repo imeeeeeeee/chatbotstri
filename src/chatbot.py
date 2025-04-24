@@ -1,6 +1,4 @@
 # chatbot.py
-from pandasai import SmartDataframe
-from pandasai.llm.openai import OpenAI
 import openai
 import matplotlib.pyplot as plt
 from langchain_openai import ChatOpenAI
