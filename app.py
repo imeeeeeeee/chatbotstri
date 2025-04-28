@@ -7,6 +7,7 @@ from src.data_loader import load_data
 from src.config import DATA_PATH, DIGITAL_STRI_PATH, NEW_DATA_PATH, FEEDBACK_FILE
 from datetime import datetime
 import json
+import openai
 
 # Configure page settings
 st.set_page_config(
