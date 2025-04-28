@@ -1,9 +1,12 @@
 # app.py
+from venv import logger
 import streamlit as st
 import pandas as pd
 from src.chatbot import Chatbot
 from src.data_loader import load_data
-from src.config import DATA_PATH, DIGITAL_STRI_PATH
+from src.config import DATA_PATH, DIGITAL_STRI_PATH, NEW_DATA_PATH, FEEDBACK_FILE
+from datetime import datetime
+import json
 
 # Configure page settings
 st.set_page_config(
@@ -20,6 +23,12 @@ def initialize_session():
         st.session_state.messages = []
     if "data_loaded" not in st.session_state:
         st.session_state.data_loaded = False
+    if "rating" not in st.session_state:
+        st.session_state.rating = None
+    if "prompt" not in st.session_state:
+        st.session_state.prompt = ""
+    if "response" not in st.session_state:
+        st.session_state.response = ""
 
 def show_data_overview(df):
     """Display comprehensive data overview"""
@@ -42,9 +51,25 @@ def show_data_overview(df):
             })
             st.dataframe(dtype_df, use_container_width=True)
 
+def log_feedback(query, model_response, score, filepath=FEEDBACK_FILE):
+    """Store user feedback in JSONL format with timestamp, query, response, and score."""
+    try:
+        feedback_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "query": query,
+            "model_response": model_response,
+            "score": score
+        }
+
+        with open(filepath, mode="a", encoding="utf-8") as file:
+            file.write(json.dumps(feedback_entry) + "\n")
+
+    except Exception as e:
+        logger.error(f"Failed to log feedback: {str(e)}")
+
 def main():
     initialize_session()
-    st.title("STRI Database Analytics Assistant")
+    st.title("ASTRID: STRI Database Analytics Assistant")
     st.markdown("""
     **💬 Interact** with the AI assistant to analyze your data.
     **📈 Visualize** trends through natural language queries.
@@ -53,7 +78,7 @@ def main():
     # Sidebar configurations
     with st.sidebar:
         st.header("Configuration")
-        sample_size = st.slider("Data Sample Size (%)", 1, 100, 15)
+        sample_size = st.slider("Data Sample Size (%)", 1, 100, 100)
         max_tokens = st.slider("Response Length", 50, 500, 200)
         model_version = st.selectbox(
             "AI Model Version",
@@ -67,7 +92,7 @@ def main():
         return load_data(path, sample/100)
 
     try:
-        df = cached_load(DATA_PATH, sample_size)
+        df = cached_load(NEW_DATA_PATH, sample_size)
         st.session_state.data_loaded = True
     except Exception as e:
         st.error(f"🚨 Data loading failed: {str(e)}")
@@ -102,30 +127,44 @@ def main():
                 st.image(msg["plot"], use_column_width=True)
 
     # Handle user input
-    if prompt := st.chat_input("Ask about the data (e.g., trends, correlations)"):
+    if prompt := st.chat_input("Hello, I'm Astrid, how can I help you?"):
         with st.chat_message("user"):
             st.markdown(prompt)
+            st.session_state.prompt = prompt
         
         st.session_state.messages.append({"role": "user", "content": prompt})
         
         with st.spinner("🔍 Analyzing..."):
             try:
                 response = st.session_state.chatbot.ask(prompt)
-                
+                st.session_state.response = response
                 with st.chat_message("assistant"):
                     st.markdown(response)
-                    # if plot:
-                    #     st.image(plot, use_column_width=True)
-                    
-                    # Feedback buttons
-                    cols = st.columns(8)
-                    with cols[0]:
-                        if st.button("👍", help="Good response"):
-                            st.session_state.chatbot.log_feedback(prompt, 1)
-                    with cols[1]:
-                        if st.button("👎", help="Improve response"):
-                            st.session_state.chatbot.log_feedback(prompt, -1)
-                
+                    # Rating and feedback section
+                    if response:  # Only show if there's a response to rate
+                        st.write("---")  # Visual separator
+                        st.markdown("**Help us improve!** Rate this response:")
+                        
+                    try:
+                        with st.form("feedback_form"):
+                            cols = st.columns(8)
+                            for i in range(5):
+                                with cols[i]:
+                                    st.form_submit_button(f"{i+1} ⭐", on_click=lambda: log_feedback(st.session_state.prompt, st.session_state.response, i+1))
+                            # with cols[0]:
+                            #     st.form_submit_button("1 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=1))
+                            # with cols[1]:
+                            #     st.form_submit_button("2 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=2))
+                            # with cols[2]:
+                            #     st.form_submit_button("3 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=3))
+                            # with cols[3]:
+                            #     st.form_submit_button("4 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=4))
+                            # with cols[4]:
+                            #     st.form_submit_button("5 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=5))
+                    except Exception as e:
+                        st.error(f"Failed to log feedback: {str(e)}")
+
+
                 st.session_state.messages.append({
                     "role": "assistant",
                     "content": response,
