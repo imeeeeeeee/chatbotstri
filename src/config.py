@@ -1,7 +1,7 @@
 DATA_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\stri_regdb_2024.dta"
 DIGITAL_STRI_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\dstri_regdb_2024.dta"
 NEW_DATA_PATH = "./output.csv"
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "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"
 FEEDBACK_FILE = "./feedback.jsonl"
 SECTOR_CODES = {
     "CS": "Computer services",
