@@ -4,3 +4,4 @@ langchain
 openai
 matplotlib
 langchain-openai
+langchain-experimental
