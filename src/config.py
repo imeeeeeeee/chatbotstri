@@ -1,6 +1,8 @@
+import streamlit as st
+
 DATA_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\stri_regdb_2024.dta"
 DIGITAL_STRI_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\dstri_regdb_2024.dta"
-OPENAI_API_KEY = ""
+OPENAI_API_KEY = st.secrets["openai_api_key"]
 NEW_DATA_PATH = "./output.csv"
 FEEDBACK_FILE = "./feedback.jsonl"
 SECTOR_CODES = {
