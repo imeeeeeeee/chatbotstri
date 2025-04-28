@@ -14,10 +14,6 @@ import streamlit as st
 class Chatbot:
     def __init__(self, df, model="gpt-4o-mini", max_tokens=200):
         """Initialize chatbot with advanced configuration"""
-        api_key = st.secrets["openai_api_key"]
-
-        # Set the API key
-        openai.api_key = api_key
 
         self.df = df
         self.llm = ChatOpenAI(
