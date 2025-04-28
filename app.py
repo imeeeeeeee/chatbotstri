@@ -15,6 +15,11 @@ st.set_page_config(
     layout="wide"
 )
 
+api_key = st.secrets["openai_api_key"]
+
+# Set the API key
+openai.api_key = api_key
+
 def initialize_session():
     """Initialize session state variables"""
     if "chatbot" not in st.session_state:
