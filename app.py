@@ -16,6 +16,16 @@ st.set_page_config(
     layout="wide"
 )
 
+# User inputs for authentication
+authenticator = st.text_input("Enter the authentication password", type="password")
+
+# Set your desired password here
+AUTH_PASSWORD = "DIVAstillLives2025"
+
+if authenticator != AUTH_PASSWORD:
+    st.warning("Please enter the correct password to access the app.")
+    st.stop()
+    
 api_key = st.secrets["openai_api_key"]
 
 # Set the API key
