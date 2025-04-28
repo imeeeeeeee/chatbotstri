@@ -5,7 +5,7 @@ from langchain_openai import ChatOpenAI
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 from langchain.agents.agent_types import AgentType
 import logging
-from .config import OPENAI_API_KEY, SECTOR_CODES, FEEDBACK_FILE
+from .config import SECTOR_CODES, FEEDBACK_FILE
 import os
 import json
 from datetime import datetime
