@@ -3,3 +3,4 @@ pandas
 langchain
 openai
 matplotlib
+langchain-openai
