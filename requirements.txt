@@ -6,3 +6,4 @@ matplotlib
 langchain-openai
 langchain-experimental
 tabulate
+st-gsheets-connection
