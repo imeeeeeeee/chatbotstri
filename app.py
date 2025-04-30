@@ -8,6 +8,7 @@ from src.config import DATA_PATH, DIGITAL_STRI_PATH, NEW_DATA_PATH, FEEDBACK_FIL
 from datetime import datetime
 import json
 import openai
+from streamlit_gsheets import GSheetsConnection
 
 # Configure page settings
 st.set_page_config(
@@ -25,7 +26,7 @@ AUTH_PASSWORD = "DIVAstillLives2025"
 if authenticator != AUTH_PASSWORD:
     st.warning("Please enter the correct password to access the app.")
     st.stop()
-    
+
 api_key = st.secrets["openai_api_key"]
 
 # Set the API key
@@ -67,21 +68,33 @@ def show_data_overview(df):
             })
             st.dataframe(dtype_df, use_container_width=True)
 
+conn = st.connection("gsheets", type=GSheetsConnection)
+existing_data = conn.read(worksheet="feedback", usecols=list(range(4)), ttl=5)
+
 def log_feedback(query, model_response, score, filepath=FEEDBACK_FILE):
     """Store user feedback in JSONL format with timestamp, query, response, and score."""
     try:
         feedback_entry = {
             "timestamp": datetime.now().isoformat(),
             "query": query,
-            "model_response": model_response,
+            "response": model_response,
             "score": score
         }
+        
+        # Append the new feedback entry
+        new_data = pd.DataFrame([feedback_entry])
+        updated_data = pd.concat([existing_data, new_data], ignore_index=True)
+        
+        # Update the worksheet with the combined data
+        conn.update(worksheet="feedback", data=updated_data)
 
         with open(filepath, mode="a", encoding="utf-8") as file:
             file.write(json.dumps(feedback_entry) + "\n")
 
     except Exception as e:
         logger.error(f"Failed to log feedback: {str(e)}")
+
+
 
 def main():
     initialize_session()
@@ -164,19 +177,16 @@ def main():
                     try:
                         with st.form("feedback_form"):
                             cols = st.columns(8)
-                            for i in range(5):
-                                with cols[i]:
-                                    st.form_submit_button(f"{i+1} ⭐", on_click=lambda: log_feedback(st.session_state.prompt, st.session_state.response, i+1))
-                            # with cols[0]:
-                            #     st.form_submit_button("1 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=1))
-                            # with cols[1]:
-                            #     st.form_submit_button("2 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=2))
-                            # with cols[2]:
-                            #     st.form_submit_button("3 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=3))
-                            # with cols[3]:
-                            #     st.form_submit_button("4 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=4))
-                            # with cols[4]:
-                            #     st.form_submit_button("5 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=5))
+                            with cols[0]:
+                                st.form_submit_button("1 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=1))
+                            with cols[1]:
+                                st.form_submit_button("2 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=2))
+                            with cols[2]:
+                                st.form_submit_button("3 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=3))
+                            with cols[3]:
+                                st.form_submit_button("4 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=4))
+                            with cols[4]:
+                                st.form_submit_button("5 ⭐", on_click=lambda: log_feedback(st.session_state.prompt, model_response=st.session_state.response, score=5))
                     except Exception as e:
                         st.error(f"Failed to log feedback: {str(e)}")
 
