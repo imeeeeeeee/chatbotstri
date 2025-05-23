@@ -21,7 +21,7 @@ st.set_page_config(
 authenticator = st.text_input("Enter the authentication password", type="password")
 
 # Set your desired password here
-AUTH_PASSWORD = st.secrets["AUTH_PASSWORD"]
+AUTH_PASSWORD = st.secrets["password"]
 
 if authenticator != AUTH_PASSWORD:
     st.warning("Please enter the correct password to access the app.")
