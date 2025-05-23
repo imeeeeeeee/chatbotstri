@@ -5,16 +5,16 @@ from langchain_openai import ChatOpenAI
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 from langchain.agents.agent_types import AgentType
 import logging
-from .config import OPENAI_API_KEY, SECTOR_CODES, FEEDBACK_FILE
+from .config import OPENAI_API_KEY, SECTOR_CODES, FEEDBACK_FILE, SECTOR_DESCRIPTIONS
 import os
 import json
 from datetime import datetime
-import streamlit as st
 
 class Chatbot:
     def __init__(self, df, model="gpt-4o-mini", max_tokens=200):
         """Initialize chatbot with advanced configuration"""
         os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+
         self.df = df
         self.llm = ChatOpenAI(
             #api_token=OPENAI_API_KEY,
@@ -32,7 +32,7 @@ class Chatbot:
 
             The DataFrame `df` contains the following columns:
 
-            - `'SECT'`: Code of the sector concerned. Each code represents a distinct service sector (e.g., `'TC'` for telecommunications). Valid sector codes are defined in SECTOR_CODES = {SECTOR_CODES}.
+            - `'SECT'`: Code of the sector concerned. Each code represents a distinct service sector (e.g., `'TC'` for telecommunications). Valid sector codes are defined in SECTOR_CODES = {SECTOR_CODES} and their descriptions are in SECTOR_DESCRIPTIONS = {SECTOR_DESCRIPTIONS}.
             - `'CLASS'`: Code of the **measure** (also known as **policy area** or **policy class**). Always use `'STRI'` when calculating restrictiveness indices.
             - `'COUNTRY'`: Country ISO 3166-1 alpha-3 code (e.g., `'AUS'` for Australia).
             - `'YEARS'`: A **stringified list** of years in chronological order, always in the format `[2014, 2015, ..., 2024]`.
@@ -45,6 +45,8 @@ class Chatbot:
             - If the user **does not specify a sector**, always default to the **ALLSEC** code (general services sector).
             - If the user **does not specify a measure**, assume `'STRI'` (Services Trade Restrictiveness Index).
             - If a sector is mentioned by name (e.g., “broadcasting”), **convert it to the corresponding code** using SECTOR_CODES.
+            - If asked about a definition or description of a sector, use SECTOR_DESCRIPTIONS.
+            - If a country is mentioned by name (e.g., “Australia”), **convert it to the corresponding ISO code** using the `'COUNTRY'` column.
             - A mention of **“policy area”**, **“policy class”**, or **“measure”** all refer to values in the `'CLASS'` column.
 
             ========================================
@@ -97,7 +99,7 @@ class Chatbot:
             Follow this framework strictly. Always verify filters, handle edge cases, and maintain factual integrity.
 
         """
-            
+
         suffix = """        
             ⚠️ FORMAT REQUIREMENTS ⚠️
             - Always return your answer as a JSON object:
