@@ -48,6 +48,10 @@ class Chatbot:
             - If asked about a definition or description of a sector, use SECTOR_DESCRIPTIONS.
             - If a country is mentioned by name (e.g., “Australia”), **convert it to the corresponding ISO code** using the `'COUNTRY'` column.
             - A mention of **“policy area”**, **“policy class”**, or **“measure”** all refer to values in the `'CLASS'` column.
+            - 'ALLSEC'` is a special sector code representing the **aggregate of all sectors** in the STRI dataset, not a sector in it's own right.
+            - The database contains STRI scores from **2014 to 2024**. If a year is not present in the dataset, it means there is no data for that year.
+            - The STRI scores are **not cumulative**; each score is independent for the corresponding year.
+            - There is a total of 22 unique sectors in the dataset, each represented by a unique code in the `'SECT'` column, as 'ALLSEC' doesn't count.
 
             ========================================
             📏 STRICT QUERY CONSTRAINTS
