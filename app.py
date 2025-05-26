@@ -122,7 +122,7 @@ def main():
             **Getting Started:**
             1. **Authenticate:** Enter the password to access the app.
             2. **Configure:** Use the sidebar to set the data sample size, response length, and AI model version - don't change the default settings.
-            3. **Explore Data:** View a preview, statistics, and data types of the dataset in the main area.
+            3. **Explore Data:** You can view a preview, statistics, and data types of the STRI dataset of sector indices in the main area.
             4. **Ask Questions:** Type your data-related questions in the chat input at the bottom.
             5. **View Responses:** The assistant will analyze your query and provide answers.
             6. **Give Feedback:** Rate the assistant’s response using the stars below each answer to help us improve. - Try to do it as often as possible!
