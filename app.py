@@ -9,6 +9,7 @@ import pandas as pd
 from src.chatbot import Chatbot
 from src.data_loader import load_data
 from src.config import DATA_PATH, DIGITAL_STRI_PATH, NEW_DATA_PATH, FEEDBACK_FILE
+from src.agent import Agent
 from datetime import datetime
 import json
 import openai
@@ -138,7 +139,7 @@ def main():
     if st.session_state.data_loaded and not st.session_state.chatbot:
         with st.spinner("🧠 Initializing AI analyst..."):
             try:
-                st.session_state.chatbot = Chatbot(
+                st.session_state.chatbot = Agent(
                     df=df,
                     model=model_version,
                     max_tokens=max_tokens
@@ -168,13 +169,26 @@ def main():
         
         with st.spinner("🔍 Analyzing..."):
             try:
-                response, plot = st.session_state.chatbot.ask(prompt)
+                result = st.session_state.chatbot.invoke(prompt)
+                print("Raw result:", result)
+
+                # If result is a tuple like (response, fig)
+                if isinstance(result, tuple) and len(result) == 2:
+                    response, fig = result
+                else:
+                    response, fig = result, None
+
+                print("Response:", response)
                 st.session_state.response = response
+
                 with st.chat_message("assistant"):
-                    st.markdown(response)
-                    # Display plot if available
-                    if plot is not None:
-                        st.pyplot(plot.gcf())
+                    if response is not None:
+                        st.markdown(str(response))
+
+                    if fig is not None and fig.get_axes():
+                        st.pyplot(fig)
+                        plt.close(fig)  # optional: free memory
+
                     # Rating and feedback section
                     if response:  # Only show if there's a response to rate
                         st.write("---")  # Visual separator
