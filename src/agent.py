@@ -177,13 +177,16 @@ class Agent:
             response = self.execute_code(code)
             print(f"Execution result: {response}")
 
-            if not isinstance(response, Figure):
-                final_answer = self.structure_final_answer(query, response)
+            if isinstance(response, Figure):
+                return response
+                
+            final_answer = self.structure_final_answer(query, response)
             return final_answer
         except Exception as e:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
 
 
