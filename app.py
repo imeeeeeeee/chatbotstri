@@ -179,11 +179,11 @@ def main():
                         img_bytes = plot_path.read_bytes()
                         st.image(img_bytes, width=800)
 
-                    # Delete the file immediately after displaying
-                    try:
-                        plot_path.unlink()
-                    except Exception as e:
-                        st.warning(f"⚠️ Could not delete {plot_path.name}: {e}")
+                        # Delete the file immediately after displaying
+                        try:
+                            plot_path.unlink()
+                        except Exception as e:
+                            st.warning(f"⚠️ Could not delete {plot_path.name}: {e}")
                     # Rating and feedback section
                     if response:  # Only show if there's a response to rate
                         st.write("---")  # Visual separator
