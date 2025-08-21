@@ -169,25 +169,12 @@ def main():
         
         with st.spinner("🔍 Analyzing..."):
             try:
-                result = st.session_state.chatbot.invoke(prompt)
-                print("Raw result:", result)
-
-                # If result is a tuple like (response, fig)
-                if isinstance(result, tuple) and len(result) == 2:
-                    response, fig = result
-                else:
-                    response, fig = result, None
-
-                print("Response:", response)
-                st.session_state.response = response
-
                 with st.chat_message("assistant"):
-                    if response is not None:
-                        st.markdown(str(response))
-
-                    if fig is not None and fig.get_axes():
-                        st.pyplot(fig)
-                        plt.close(fig)  # optional: free memory
+                    # Check if the response is a matplotlib figure
+                    if isinstance(response, Figure):
+                        st.pyplot(response)
+                    else:
+                        st.markdown(response)
 
                     # Rating and feedback section
                     if response:  # Only show if there's a response to rate
