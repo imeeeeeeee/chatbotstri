@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 from venv import logger
-
+from matplotlib.figure import Figure
 import certifi
 import streamlit as st
 import pandas as pd
