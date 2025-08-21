@@ -1,34 +1,32 @@
 import streamlit as st
-
-
 DATA_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\stri_regdb_2024.dta"
 DIGITAL_STRI_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\dstri_regdb_2024.dta"
-NEW_DATA_PATH = "./output.csv"
+NEW_DATA_PATH = "C:\\Users\\Joksimovic_j\\Documents\\stri-chatbot\\stri_oecdstat_2014_2024_copy.xlsx"
 OPENAI_API_KEY = st.secrets["openai_api_key"]
 FEEDBACK_FILE = "./feedback.jsonl"
 SECTOR_CODES = {
-    "CS": "Computer services",
-    "TC": "Telecommunication",
-    "ASbrd": "Broadcasting",
-    "ASmot": "Motion pictures",
-    "ASsou": "Sound recording",
-    "TRair": "Air transport",
-    "TRmar": "Maritime transport",
-    "TRrof": "Road freight transport",
-    "TRrai": "Rail freight transport",
-    "CR": "Courier services",
-    "DS": "Distribution services",
-    "LScar": "Logistics cargo-handling",
-    "LSstg": "Logistics storage and warehouse",
-    "LSfgt": "Logistics freight forwarding",
-    "LScus": "Logistics customs brokerage",
-    "PSleg": "Legal services",
-    "PSacc": "Accounting services",
-    "FSbnk": "Commercial banking",
-    "FSins": "Insurance",
-    "CO": "Construction",
-    "PSarc": "Architecture services",
-    "PSeng": "Engineering services"
+    "CS": "COMPUTER SERVICES",
+    "TC": "TELECOMMUNICATION",
+    "ASBRD": "BROADCASTING",
+    "ASMOT": "MOTION PICTURES",
+    "ASSOU": "SOUND RECORDING",
+    "TRAIR": "AIR TRANSPORT",
+    "TRMAR": "MARITIME TRANSPORT",
+    "TRROF": "ROAD FREIGHT TRANSPORT",
+    "TRRAI": "RAIL FREIGHT TRANSPORT",
+    "CR": "COURIER SERVICES",
+    "DS": "DISTRIBUTION SERVICES",
+    "LSCAR": "LOGISTICS CARGO-HANDLING",
+    "LSSTG": "LOGISTICS STORAGE AND WAREHOUSE",
+    "LSFGT": "LOGISTICS FREIGHT FORWARDING",
+    "LSCUS": "LOGISTICS CUSTOMS BROKERAGE",
+    "PSLEG": "LEGAL SERVICES",
+    "PSACC": "ACCOUNTING SERVICES",
+    "FSBNK": "COMMERCIAL BANKING",
+    "FSINS": "INSURANCE",
+    "CO": "CONSTRUCTION",
+    "PSARC": "ARCHITECTURE SERVICES",
+    "PSENG": "ENGINEERING SERVICES"
 }
 
 SECTOR_DESCRIPTIONS = {
@@ -55,3 +53,9 @@ SECTOR_DESCRIPTIONS = {
     "LSfgt": "Logistics services freight transport agency services and customs brokerage services (ISIC 5229, CPC 748&749) encompass various activities related to the transportation, storage, handling, and distribution of goods, including advisory services on customs, insurance, and payment matters. These services can be performed using single or multimodal transport methods.",
     "LScus": "Logistics services customs brokerage services (ISIC 5229, CPC 748&749) act as an intermediary for importers and exporters in handling the sequence of customs formalities involved in the customs clearance and importing/importation of goods."
 }
+
+STRI_DEFINITION = """
+The OECD Services Trade Restrictiveness Index (STRI) is a unique tool that offers an overview of regulatory barriers across 22 major sectors and 51 countries. Updated annually, the STRI also monitors recent regulatory trends, facilitates benchmarking of services policies against global best practices, and enables analysis of the impact of reform options.
+"""
+
+KNOWLEDGE_BASE = [SECTOR_DESCRIPTIONS, STRI_DEFINITION]
