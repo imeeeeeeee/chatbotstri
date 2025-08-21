@@ -2,6 +2,7 @@ import regex as re
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from matplotlib.figure import Figure
 import json
 from openai import OpenAI # Testing the async version is also on the table --> TBD
 from .config import OPENAI_API_KEY
@@ -112,7 +113,7 @@ class Agent:
         
         return response.choices[0].message.content
     
-    def execute_code(self, code: str):
+    def execute_code(self, code: str) -> str:
         """Execute the generated code and return the result."""
         # Remove any leading or trailing code block markers
         if code.strip().startswith("```python") and code.strip().endswith("```"):
@@ -125,17 +126,12 @@ class Agent:
             # Retrieve the value of a variable named 'result' if it exists
             result = local_scope.get('result', None)
 
-            # Check if a matplotlib figure has been generated
-            if 'plt' in locals() or 'plt' in local_scope:
-                try:
-                    # ensure a figure exists
-                    fig = plt.gcf()
-                    if fig.get_axes():  # only return if it has content
-                        return result, plt
-                except Exception:
-                    pass
-                    
-            return result, None
+            # Check if a plot was generated
+            if 'plt' in local_scope and hasattr(local_scope['plt'], 'savefig'):
+                local_scope['plt'].savefig("output_plot.png", dpi=300)
+
+            if result is not None:
+                return result
         except Exception as e:
             return f"An error occurred while executing the code: {str(e)}"
         
@@ -178,18 +174,17 @@ class Agent:
             code = self.generate_response(processed_query)
             print(f"Generated code: {code}")
             # Execute the code if it is a code generation query
-            response, plot = self.execute_code(code)
+            response = self.execute_code(code)
             print(f"Execution result: {response}")
 
-            final_answer = self.structure_final_answer(query, response)
-            if plot is not None:
-                return final_answer, plot
-                
-            return final_answer, None
+            if not isinstance(response, Figure):
+                final_answer = self.structure_final_answer(query, response)
+            return final_answer
         except Exception as e:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
 
 
