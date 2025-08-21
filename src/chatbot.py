@@ -5,11 +5,11 @@ import os
 from .agent import Agent
 
 class Chatbot:
-    def __init__(self, df):
+    def __init__(self, df, model, max_tokens):
         """Initialize chatbot with advanced configuration"""
         os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
         self.df = df
-        self.agent = Agent(df)
+        self.agent = Agent(df, model, max_tokens)
 
         self.logger = logging.getLogger(__name__)
 
