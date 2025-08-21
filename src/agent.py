@@ -125,12 +125,17 @@ class Agent:
             # Retrieve the value of a variable named 'result' if it exists
             result = local_scope.get('result', None)
 
-            # Check if a plot was generated
-            if 'plt' in local_scope:
-                return result, local_scope['plt']
-
-            if result is not None:
-                return result, None
+            # Check if a matplotlib figure has been generated
+            if 'plt' in locals() or 'plt' in local_scope:
+                try:
+                    # ensure a figure exists
+                    fig = plt.gcf()
+                    if fig.get_axes():  # only return if it has content
+                        return result, plt
+                except Exception:
+                    pass
+                    
+            return result, None
         except Exception as e:
             return f"An error occurred while executing the code: {str(e)}"
         
@@ -183,5 +188,6 @@ class Agent:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
 
