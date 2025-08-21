@@ -112,7 +112,7 @@ class Agent:
         
         return response.choices[0].message.content
     
-    def execute_code(self, code: str) -> str:
+    def execute_code(self, code: str):
         """Execute the generated code and return the result."""
         # Remove any leading or trailing code block markers
         if code.strip().startswith("```python") and code.strip().endswith("```"):
@@ -158,7 +158,7 @@ class Agent:
         return answer.choices[0].message.content
 
 
-    def invoke(self, query: str) -> str:
+    def invoke(self, query: str):
         """Process the query and return a response."""
         try:
             # Classify the query
@@ -178,16 +178,19 @@ class Agent:
             code = self.generate_response(processed_query)
             print(f"Generated code: {code}")
             # Execute the code if it is a code generation query
-            response = self.execute_code(code)
+            response, plot = self.execute_code(code)
             print(f"Execution result: {response}")
 
             final_answer = self.structure_final_answer(query, response)
-            
-            return final_answer
+            if plot is not None:
+                return final_answer, plot
+                
+            return final_answer, None
         except Exception as e:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
 
 
