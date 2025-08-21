@@ -1,5 +1,9 @@
 # app.py
+import os
+from pathlib import Path
 from venv import logger
+
+import certifi
 import streamlit as st
 import pandas as pd
 from src.chatbot import Chatbot
@@ -9,6 +13,9 @@ from datetime import datetime
 import json
 import openai
 from streamlit_gsheets import GSheetsConnection
+
+os.environ["SSL_CERT_FILE"] = certifi.where()
+os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
 # Configure page settings
 st.set_page_config(
@@ -69,9 +76,9 @@ def show_data_overview(df):
             st.dataframe(dtype_df, use_container_width=True)
 
 conn = st.connection("gsheets", type=GSheetsConnection)
-existing_data = conn.read(worksheet="feedback", usecols=list(range(4)), ttl=5)
+existing_data = conn.read(worksheet="Sheet1", usecols=list(range(4)), ttl=5)
 
-def log_feedback(query, model_response, score, filepath=FEEDBACK_FILE):
+def log_feedback(query, model_response, score):
     """Store user feedback in JSONL format with timestamp, query, response, and score."""
     try:
         feedback_entry = {
@@ -87,14 +94,10 @@ def log_feedback(query, model_response, score, filepath=FEEDBACK_FILE):
         
         # Update the worksheet with the combined data
         conn.update(worksheet="feedback", data=updated_data)
-
-        with open(filepath, mode="a", encoding="utf-8") as file:
-            file.write(json.dumps(feedback_entry) + "\n")
+        st.success("Feedback logged successfully!")
 
     except Exception as e:
         logger.error(f"Failed to log feedback: {str(e)}")
-
-
 
 def main():
     initialize_session()
@@ -114,40 +117,6 @@ def main():
             ["gpt-4o-mini", "gpt-3.5-turbo"],
             index=0
         )
-         # How-To Guide
-        with st.expander("📖 How to Use This App"):
-            st.markdown("""
-            **Welcome to ASTRID: STRI Database Analytics Assistant!**
-
-            **Getting Started:**
-            1. **Authenticate:** Enter the password to access the app.
-            2. **Configure:** Use the sidebar to set the data sample size, response length, and AI model version - don't change the default settings.
-            3. **Explore Data:** You can view a preview, statistics, and data types of the STRI dataset of sector indices in the main area.
-            4. **Ask Questions:** Type your data-related questions in the chat input at the bottom.
-            5. **View Responses:** The assistant will analyze your query and provide answers.
-            6. **Give Feedback:** Rate the assistant’s response using the stars below each answer to help us improve. - Try to do it as often as possible!
-                        
-            **Data Overview:**
-            - The dataset contains information on the Services Trade Restrictiveness Index (STRI) across all sectors and countries.
-            - As of right now, it includes only the STRI scores.
-            - As of now, there is no access to the sources of the data, but we are working on it.
-            - Graphs are still not available, but we are working on it.
-
-            **Example Questions:**
-            - "How many countries are in the database?"
-            - "Explain this sector."
-            - "Which country has the highest STRI score?"
-            - "Show me the trend of STRI scores over time."
-            - "What is the average STRI score for each sector?"
-            - "Compare France and Germany's STRI scores in Telecommunications."
-
-            **Need Help?**  
-            If you encounter issues, check your configuration or reload the app.
-                        
-            **Enjoy exploring the STRI database with ASTRID!**
-            
-            **Note:** This app is still in development, so some features may not be fully functional yet.
-            """)
 
     # Data loading with caching
     @st.cache_data(show_spinner="Loading dataset...")
@@ -203,6 +172,18 @@ def main():
                 st.session_state.response = response
                 with st.chat_message("assistant"):
                     st.markdown(response)
+                    # Display plot if available
+                    plot_path = Path("output_plot.png")
+                    if plot_path.exists():
+                    # Read the image into memory
+                        img_bytes = plot_path.read_bytes()
+                        st.image(img_bytes, width=800)
+
+                    # Delete the file immediately after displaying
+                    try:
+                        plot_path.unlink()
+                    except Exception as e:
+                        st.warning(f"⚠️ Could not delete {plot_path.name}: {e}")
                     # Rating and feedback section
                     if response:  # Only show if there's a response to rate
                         st.write("---")  # Visual separator
