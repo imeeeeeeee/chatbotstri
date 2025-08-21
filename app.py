@@ -174,7 +174,7 @@ def main():
                     st.markdown(response)
                     # Display plot if available
                     if plot is not None:
-                        st.pyplot(plot)
+                        st.pyplot(plot.gcf())
                     # Rating and feedback section
                     if response:  # Only show if there's a response to rate
                         st.write("---")  # Visual separator
