@@ -17,8 +17,8 @@ class Chatbot:
         """Process query with enhanced error handling and visualization support"""
         try:
             # Process query with visualization capability
-            response = self.agent.invoke(query)
-            return response
+            response, plot = self.agent.invoke(query)
+            return response, plot
 
         except Exception as e:
             self.logger.error(f"Query failed: {str(e)}")
