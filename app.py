@@ -169,6 +169,8 @@ def main():
         
         with st.spinner("🔍 Analyzing..."):
             try:
+                response = st.session_state.chatbot.invoke(prompt)
+                st.session_state.response = response
                 with st.chat_message("assistant"):
                     # Check if the response is a matplotlib figure
                     if isinstance(response, Figure):
