@@ -24,7 +24,7 @@ def load_data(path, sample_frac=0.15):
             df = pd.read_parquet(path)
         elif ext == '.csv':
             df = pd.read_csv(path, low_memory=False)
-            return df
+            return _clean_dataframe(df)
         elif ext in ('.xls', '.xlsx'):
             df = pd.read_excel(path)
             return _clean_dataframe(df)
