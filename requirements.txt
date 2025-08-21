@@ -7,3 +7,4 @@ langchain-openai
 langchain-experimental
 tabulate
 st-gsheets-connection
+openpyxl
