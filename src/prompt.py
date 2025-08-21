@@ -169,6 +169,7 @@ CODING_PROMPT = """
     - When asked about scores, always provide the relevant scores for the specified sector, country, and year.
     - Liberalisation means that the scores have gone down.
     - For the summary requests, include the general score, the three most and least restricted sectors as well as a comparison with the previous year.
+    - Always use 'fig' when generating plots and return that as the 'result' variable.
     - Never use '.show()' when generating plots.
     **It is absolutely critical that every generated code snippet applies a filter on the sector field using the value(s) from the structured query. Do not skip this step under any circumstances.**
 
