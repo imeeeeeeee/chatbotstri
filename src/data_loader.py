@@ -27,7 +27,7 @@ def load_data(path, sample_frac=0.15):
             return df
         elif ext in ('.xls', '.xlsx'):
             df = pd.read_excel(path)
-            return df
+            return _clean_dataframe(df)
         else:
             raise ValueError(f"Unsupported file format: {ext}")
         
