@@ -168,22 +168,13 @@ def main():
         
         with st.spinner("🔍 Analyzing..."):
             try:
-                response = st.session_state.chatbot.ask(prompt)
+                response, plot = st.session_state.chatbot.ask(prompt)
                 st.session_state.response = response
                 with st.chat_message("assistant"):
                     st.markdown(response)
                     # Display plot if available
-                    plot_path = Path("output_plot.png")
-                    if plot_path.exists():
-                    # Read the image into memory
-                        img_bytes = plot_path.read_bytes()
-                        st.image(img_bytes, width=800)
-
-                        # Delete the file immediately after displaying
-                        try:
-                            plot_path.unlink()
-                        except Exception as e:
-                            st.warning(f"⚠️ Could not delete {plot_path.name}: {e}")
+                    if plot is not None:
+                        st.pyplot(plot)
                     # Rating and feedback section
                     if response:  # Only show if there's a response to rate
                         st.write("---")  # Visual separator
