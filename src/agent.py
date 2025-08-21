@@ -126,7 +126,7 @@ class Agent:
             result = local_scope.get('result', None)
 
             # Check if a plot was generated
-            if 'plt' in local_scope and hasattr(local_scope['plt'], 'savefig'):
+            if 'plt' in local_scope:
                 return result, local_scope['plt']
 
             if result is not None:
@@ -183,4 +183,5 @@ class Agent:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
