@@ -11,6 +11,7 @@ from .prompt import ANSWER_PROMPT, CLASSIFICATION_PROMPT, DEFINITION_PROMPT, STR
 class Agent:
     def __init__(self, df: pd.DataFrame, model: str = "gpt-4o-mini", max_tokens: int = 2000) -> None:
         """Initialize the agent with the DataFrame and model configuration."""
+        os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
         self.df = df
         self.model = model
         self.max_tokens = max_tokens
@@ -186,6 +187,7 @@ class Agent:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
 
 
