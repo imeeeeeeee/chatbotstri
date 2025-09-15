@@ -1,17 +1,14 @@
 # app.py
 import os
-from pathlib import Path
 from venv import logger
-from matplotlib.figure import Figure
 import certifi
+from matplotlib.figure import Figure
+from src.agent import Agent
 import streamlit as st
 import pandas as pd
-from src.chatbot import Chatbot
 from src.data_loader import load_data
-from src.config import DATA_PATH, DIGITAL_STRI_PATH, NEW_DATA_PATH, FEEDBACK_FILE
-from src.agent import Agent
+from src.config import NEW_DATA_PATH
 from datetime import datetime
-import json
 import openai
 from streamlit_gsheets import GSheetsConnection
 
@@ -112,12 +109,43 @@ def main():
     with st.sidebar:
         st.header("Configuration")
         sample_size = st.slider("Data Sample Size (%)", 1, 100, 100)
-        max_tokens = st.slider("Response Length", 50, 500, 200)
+        max_tokens = st.slider("Response Length", 50, 500, 500)
         model_version = st.selectbox(
             "AI Model Version",
-            ["gpt-4o-mini", "gpt-3.5-turbo"],
+            ["gpt-4o", "gpt-4o-mini"],
             index=0
         )
+
+    with st.expander("ℹ️ About This App", expanded=True):
+        st.markdown("""
+        **ASTRID: STRI Database Analytics Assistant**  
+        This tool lets you interact with the STRI dataset using natural language.  
+        Use Case Categories 
+        Please try to classify your questions in line with the following types:
+         - General Query
+            Inquiries about the dataset, structure, methodology, or available coverage (countries, sectors, years).
+            Example: "What does the dataset include?"
+        - Score Query
+            Requests for STRI or related scores for a specific country, sector, and/or year.
+            Example: "What’s the STRI for Japan in legal services in 2023?"
+        - Graphical Query
+            Requests for visualizations (charts, plots, etc.) based on the STRI data.
+            Example: "Show me the trend line for France’s STRI in telecom."
+        - Comparative Query
+            Comparisons between countries, sectors, or time periods.
+            Example: "Compare Germany and Italy in financial services in 2022."
+        - Definition Query
+            Requests for definitions or explanations (terms, indicators, methods).
+            Example: "What is STRI?" or "How is the restrictiveness score calculated?"
+        - Summary Query
+            Requests for a general overview of a country’s current STRI situation.
+            Example: "Give me a summary of Australia’s STRI profile."
+
+        Important Notes
+        - We’re currently only working with the indices — the regulatory measures database will be integrated later. So for now, no questions about specific measures, please.
+        - All this guidance will soon be available directly in the app via a dedicated info window for easy reference.
+
+        """)
 
     # Data loading with caching
     @st.cache_data(show_spinner="Loading dataset...")
@@ -177,7 +205,6 @@ def main():
                         st.pyplot(response)
                     else:
                         st.markdown(response)
-
                     # Rating and feedback section
                     if response:  # Only show if there's a response to rate
                         st.write("---")  # Visual separator
