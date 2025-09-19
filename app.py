@@ -271,9 +271,9 @@ def main():
                 response = st.session_state.chatbot.invoke(prompt)
                 st.session_state.response = response
                 render_response(st.session_state.response)
-                    if response:  # Only show if there's a response to rate
-                        st.write("---")  # Visual separator
-                        st.markdown("**Help us improve!** Rate this response:")
+                if response:  # Only show if there's a response to rate
+                    st.write("---")  # Visual separator
+                    st.markdown("**Help us improve!** Rate this response:")
                         
                     try:
                         with st.form("feedback_form"):
