@@ -198,8 +198,11 @@ def main():
                 response = st.session_state.chatbot.invoke(prompt)
                 st.session_state.response = response
                 with st.chat_message("assistant"):
-                    # Check if the response is a matplotlib figure
-                    if isinstance(response, Figure):
+                    # If response is a dict with 'fig', show the figure
+                    if isinstance(response, dict) and "fig" in response:
+                        st.pyplot(response["fig"])
+                    # If response is a matplotlib Figure
+                    elif isinstance(response, Figure):
                         st.pyplot(response)
                     else:
                         st.markdown(response)
