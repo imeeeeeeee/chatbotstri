@@ -4,6 +4,7 @@ from venv import logger
 import certifi
 from matplotlib.figure import Figure
 from src.agent import Agent
+from src.chatbot import Chatbot
 import streamlit as st
 import pandas as pd
 from src.data_loader import load_data
