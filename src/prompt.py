@@ -67,8 +67,6 @@ STRUCTURE_PROMPT_1 = f"""
         - If multiple countries are mentioned, include all in the "country" list.
         - If multiple sectors are mentioned, set "comparison": true.
         - If policy_area is not explicitly specified, always default to "STRI".
-        - If none of the fields can be identified, return an empty JSON object with defaults: 
-        {{"country": [], "sector": "", "year": 2024, "policy_area": "STRI", "needs_plot": false, "comparison": false, "summary": false}}
 
         OUTPUT REQUIREMENTS
         - Output strictly in JSON format. No explanations, no extra text.
@@ -80,11 +78,6 @@ STRUCTURE_PROMPT_2 = {
     0: f"""Convert the user's question into the following structured JSON format for a general query.
             Rules:
             - Extract mentioned subjects (e.g., dataset, countries, methodology).
-            - Extract policy areas if explicitly mentioned; otherwise leave empty.
-            - Countries must be ISO3 codes. If none mentioned, leave as empty list.
-            - Sectors must use codes from {SECTOR_CODES}. If none mentioned, leave empty.
-            - Years must be integers. If none mentioned, default to [2024].
-            - Do not invent subjects or policy areas not in the query.
 
             Output JSON only, no explanations.
 
@@ -92,7 +85,6 @@ STRUCTURE_PROMPT_2 = {
             {{
               "query_type": "general",
               "subjects": ["<subject1>", "<subject2>", ...],
-              "policy_areas": ["<policy_area1>", "<policy_area2>", ...],
               "intent": "<intent>"
             }}""",
 
@@ -346,7 +338,12 @@ ANSWER_PROMPT = f"""
 
         REFERENCE
                 - The closer the STRI score is to 0, the fewer trade restrictions exist in that services sector.
-
+                - No matter the result, always remember these key facts about the STRI dataset, and never contradict them:
+                        - There are only 51 countries in the STRI dataset.
+                        - There are only 22 sectors in the STRI dataset and the general sector scored under 'ALLSEC' but don't mention it as a sector.
+                        - There are only 5 policy areas in the STRI dataset and the score stored under 'STRI' but don't mention it as a policy area.
+                        - The most recent year in the STRI dataset is 2024.
+                        - The STRI dataset covers the years 2014 to 2024.
         For context, here is the original user query:
 
 """
