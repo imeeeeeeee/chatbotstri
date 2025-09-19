@@ -1,21 +1,20 @@
+from matplotlib.figure import Figure
 import regex as re
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-from matplotlib.figure import Figure
 import json
 from openai import OpenAI # Testing the async version is also on the table --> TBD
 from .config import OPENAI_API_KEY
 from .prompt import ANSWER_PROMPT, CLASSIFICATION_PROMPT, DEFINITION_PROMPT, STRUCTURE_PROMPT_1, STRUCTURE_PROMPT_2, CODING_PROMPT
 
 class Agent:
-    def __init__(self, df: pd.DataFrame, model: str = "gpt-4o-mini", max_tokens: int = 2000) -> None:
+    def __init__(self, df: pd.DataFrame, model: str = "gpt-4o", max_tokens: int = 2000) -> None:
         """Initialize the agent with the DataFrame and model configuration."""
-        os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
         self.df = df
         self.model = model
         self.max_tokens = max_tokens
-        self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        self.client = OpenAI()
 
 
     def classify_query(self, query: str) -> int:
@@ -98,21 +97,25 @@ class Agent:
     
     def get_definition(self, query: str) -> str:
         """For definition questions"""
-        response = self.client.chat.completions.create(
+        # Ensure both contents are plain strings
+        user_content = query if isinstance(query, str) else str(query)
+
+        resp = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {   
-                    "role": "developer", "content": DEFINITION_PROMPT   
-                },
-                {
-                    "role": "user", "content": query,
-                },
+                {"role": "system", "content": DEFINITION_PROMPT.strip()},
+                {"role": "user", "content": user_content},
             ],
             max_tokens=self.max_tokens,
-            temperature=0.5
+            temperature=0.5,
         )
-        
-        return response.choices[0].message.content
+
+        # Handle both object- and dict-style SDKs
+        msg = resp.choices[0].message
+        try:
+            return msg.content               # preferred (object attribute)
+        except AttributeError:
+            return msg["content"]  
     
     def execute_code(self, code: str) -> str:
         """Execute the generated code and return the result."""
@@ -169,7 +172,8 @@ class Agent:
             print(f"Processed query: {processed_query}")
 
             if q_class == 4:
-                return self.get_definition(processed_query)
+                response = self.get_definition(processed_query)
+                return response
 
             # Generate the response
             code = self.generate_response(processed_query)
@@ -180,19 +184,10 @@ class Agent:
 
             if isinstance(response, Figure):
                 return response
-                
+            
             final_answer = self.structure_final_answer(query, response)
             return final_answer
         except Exception as e:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
-
-
-
-
-
-
-
-
-
