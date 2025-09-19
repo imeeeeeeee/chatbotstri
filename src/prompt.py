@@ -101,8 +101,8 @@ STRUCTURE_PROMPT_2 = {
     1: f"""Convert the user's request into structured JSON for a score query.
             Rules:
             - Extract all mentioned countries (ISO3 format), sectors (map using {SECTOR_CODES}), years (integers), and policy areas.
-            - If no year mentioned, default to [2024].
-            - If policy area not mentioned, default to ["STRI"].
+            - Extract all the relevant years or time spans, otherwise default to [2024].
+            - Extract all the relevant policy areas, otherwise default to ["STRI"] if not mentioned.
             - Countries, sectors, years, and policy areas must always be arrays, even if only one element.
             - Do not invent values not present in the query.
 
@@ -122,7 +122,8 @@ STRUCTURE_PROMPT_2 = {
             Rules:
             - Extract type of graph if specified (bar, line, trend, ranking, etc.). If not clear, set to "unspecified".
             - Extract countries (ISO3), sectors (codes from {SECTOR_CODES}), years, and policy areas.
-            - Default year = [2024] if not mentioned. Default policy_area = ["STRI"] if not mentioned.
+            - Extract all the relevant years or time spans, otherwise default to [2024].
+            - Extract all the relevant policy areas, otherwise default to ["STRI"] if not mentioned.
             - Countries, sectors, years, and policy_areas must always be arrays.
             - Do not invent values not in the query.
 
@@ -144,7 +145,8 @@ STRUCTURE_PROMPT_2 = {
             - Extract dimension of comparison: "countries", "sectors", or "years".
             - Extract all entities being compared (countries as ISO3, sectors via {SECTOR_CODES}, or years as integers).
             - Extract additional context (sectors, years, policy areas).
-            - Default year = [2024] if not mentioned. Default policy_area = ["STRI"] if not mentioned.
+            - Extract all the relevant years or time spans, otherwise default to [2024].
+            - Extract all the relevant policy areas, otherwise default to ["STRI"] if not mentioned.
             - Arrays must be used for all list fields.
             - Do not invent values.
 
@@ -196,7 +198,7 @@ STRUCTURE_PROMPT_2 = {
     6: f"""Convert the user's request for a summary into structured JSON.
             Rules:
             - Extract the country (ISO3). If multiple countries are mentioned, include all in a list.
-            - Default year = [2024] if not mentioned.
+            - Extract all the relevant years or time spans, otherwise default to 2024.
             - Intent must clearly describe that the user is asking for a summary.
 
             Output JSON only, no explanations.
@@ -326,7 +328,6 @@ ANSWER_PROMPT = f"""
         * If single value → state it directly with context.
         * If plot (`result['fig']`) → explain the main trends and what the visualization shows.
                 - Always include interpretation in terms of restrictiveness (higher = more restrictive, lower = more liberalised).
-                - Always compare overall scores to the OECD average of 0.23 (e.g. “above the OECD average (0.23)”, “below the OECD average”).
                 - Always interpret year-to-year changes: a decrease = liberalisation, an increase = more restrictions.
                 - If summary request → include general STRI score, top 3 most restricted and least restricted sectors (by full sector name), and previous-year comparison.
 
@@ -347,7 +348,6 @@ ANSWER_PROMPT = f"""
 
         REFERENCE
                 - The closer the STRI score is to 0, the fewer trade restrictions exist in that services sector.
-                - OECD average around 0.23 (use this when analyzing the overall score of a country).
 
         For context, here is the original user query:
 
