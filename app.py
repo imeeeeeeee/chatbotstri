@@ -270,7 +270,12 @@ def main():
             try:
                 response = st.session_state.chatbot.invoke(prompt)
                 st.session_state.response = response
-                render_response(st.session_state.response)
+                if isinstance(response, dict) and "fig" in response:
+                        st.pyplot(response["fig"])
+                elif isinstance(response, Figure):
+                        st.pyplot(response)
+                else:
+                    st.markdown(response)
                 if response:  # Only show if there's a response to rate
                     st.write("---")  # Visual separator
                     st.markdown("**Help us improve!** Rate this response:")
