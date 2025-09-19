@@ -33,7 +33,7 @@ if authenticator != AUTH_PASSWORD:
     st.warning("Please enter the correct password to access the app.")
     st.stop()
     
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
 
 def initialize_session():
     """Initialize session state variables"""
