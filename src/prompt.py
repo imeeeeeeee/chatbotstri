@@ -52,8 +52,8 @@ STRUCTURE_PROMPT_1 = f"""
         REQUIRED JSON FIELDS
         - country: list of country codes (ISO3 format, e.g. "AUS" for Australia). Empty list if none specified.
         - sector: single sector code from {SECTOR_CODES}. Use "ALLSEC" only if the query is explicitly about the overall score of a country or countries. If the query is about policy areas generally (not a specific sector), leave empty.
-        - year: integer year. If not mentioned, default to 2024 (the most recent year available).
-        - policy_area: one of the policy areas listed above, or "STRI". If not explicitly mentioned, default to "STRI".
+        - years: list of integer years. If not mentioned, default to [2024] (the most recent year available).
+        - policy_area: list of the policy areas listed above, or "STRI". If not explicitly mentioned, default to "STRI".
         - needs_plot: boolean. True if the user is asking for a visualization (mentions "show", "plot", "graph", "chart", "visualize"), otherwise False.
         - comparison: boolean. True if the query compares multiple countries, sectors, or years, otherwise False.
         - summary: boolean. True if the query requests a broad summary of a country’s STRI situation (overview of general score, sector breakdown, year comparison), otherwise False.
@@ -64,8 +64,6 @@ STRUCTURE_PROMPT_1 = f"""
         - All sectors must be mapped using {SECTOR_CODES}.
         - Use "ALLSEC" only for overall country-level scores, never for policy areas.
         - If the query mentions "restrictiveness level" of a country/countries in general, interpret it as sector = "ALLSEC" with policy_area = "STRI".
-        - If the year range is requested, store the final year explicitly (e.g., "year": 2024). Year ranges will be handled by the code generator.
-        - If multiple years are mentioned, set "comparison": true and store the latest mentioned year.
         - If multiple countries are mentioned, include all in the "country" list.
         - If multiple sectors are mentioned, set "comparison": true.
         - If policy_area is not explicitly specified, always default to "STRI".
