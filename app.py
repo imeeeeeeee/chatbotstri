@@ -94,6 +94,80 @@ def log_feedback(query, model_response, score):
 
     except Exception as e:
         logger.error(f"Failed to log feedback: {str(e)}")
+        
+def render_response(response):
+    """Render model response inside a chat bubble."""
+    # 1) Dict payload from your model
+    if isinstance(response, dict):
+        msg = response.get("message")
+        if msg:
+            st.markdown(msg)
+
+        # Show any tabular data if present
+        data = response.get("data")
+        if data is not None:
+            try:
+                df = pd.DataFrame(data)
+                st.dataframe(df, use_container_width=True)
+            except Exception:
+                st.write(data)  # fallback
+
+        # Show figures (single or multiple)
+        fig = response.get("fig")
+        _render_fig(fig)
+        return
+
+    # 2) Raw Matplotlib Figure
+    if isinstance(response, Figure):
+        st.pyplot(response)
+        return
+
+    # 3) Any other object → print as text
+    st.markdown(str(response))
+
+
+def _render_fig(fig):
+    """Best-effort renderer for various figure types."""
+    if fig is None:
+        return
+
+    # Handle lists/tuples of figures
+    if isinstance(fig, (list, tuple)):
+        for f in fig:
+            _render_fig(f)
+        return
+
+    # Matplotlib
+    if isinstance(fig, Figure):
+        st.pyplot(fig)
+        return
+
+    # Plotly (duck-typing: most Plotly objects have .to_plotly_json)
+    if hasattr(fig, "to_plotly_json"):
+        st.plotly_chart(fig, use_container_width=True)
+        return
+
+    # Altair (duck-typing: has .to_dict with 'config'/'mark' keys typically)
+    if hasattr(fig, "to_dict") and not hasattr(fig, "to_plotly_json"):
+        try:
+            import altair as alt  # only if installed
+            if isinstance(fig, alt.Chart) or isinstance(fig, alt.ConcatChart) or isinstance(fig, alt.LayerChart):
+                st.altair_chart(fig, use_container_width=True)
+                return
+        except Exception:
+            pass  # fall through to generic write
+
+    # Numpy image or Pillow Image
+    try:
+        import PIL.Image as Image
+        if isinstance(fig, np.ndarray) or isinstance(fig, Image.Image):
+            st.image(fig, use_container_width=True)
+            return
+    except Exception:
+        pass
+
+    # Fallback: just write whatever it is
+    st.write(fig)
 
 def main():
     initialize_session()
@@ -141,8 +215,7 @@ def main():
 
         Important Notes
         - We’re currently only working with the indices — the regulatory measures database will be integrated later. So for now, no questions about specific measures, please.
-        - All this guidance will soon be available directly in the app via a dedicated info window for easy reference.
-
+        - When asking about the most/least restrictive sector, it's in terms of absolute values and not compared to the sample average.
         """)
 
     # Data loading with caching
@@ -197,16 +270,7 @@ def main():
             try:
                 response = st.session_state.chatbot.invoke(prompt)
                 st.session_state.response = response
-                with st.chat_message("assistant"):
-                    # If response is a dict with 'fig', show the figure
-                    if isinstance(response, dict) and "fig" in response:
-                        st.pyplot(response["fig"])
-                    # If response is a matplotlib Figure
-                    elif isinstance(response, Figure):
-                        st.pyplot(response)
-                    else:
-                        st.markdown(response)
-                    # Rating and feedback section
+                render_response(st.session_state.response)
                     if response:  # Only show if there's a response to rate
                         st.write("---")  # Visual separator
                         st.markdown("**Help us improve!** Rate this response:")
