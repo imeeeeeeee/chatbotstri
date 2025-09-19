@@ -14,7 +14,7 @@ class Agent:
         self.df = df
         self.model = model
         self.max_tokens = max_tokens
-        self.client = OpenAI()
+        self.client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
     def classify_query(self, query: str) -> int:
@@ -191,3 +191,4 @@ class Agent:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
