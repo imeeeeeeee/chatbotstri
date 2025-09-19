@@ -182,7 +182,7 @@ class Agent:
             response = self.execute_code(code)
             print(f"Execution result: {response}")
 
-            if isinstance(response, Figure):
+            if q_class == 2:
                 return response
             
             final_answer = self.structure_final_answer(query, response)
@@ -191,4 +191,5 @@ class Agent:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
