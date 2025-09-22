@@ -109,7 +109,7 @@ def main():
     with st.sidebar:
         st.header("Configuration")
         sample_size = st.slider("Data Sample Size (%)", 1, 100, 100)
-        max_tokens = st.slider("Response Length", 50, 500, 500)
+        max_tokens = st.slider("Response Length", 50, 1500, 1000)
         model_version = st.selectbox(
             "AI Model Version",
             ["gpt-4o", "gpt-4o-mini"],
@@ -216,13 +216,21 @@ def main():
                         if "message" in response and response["message"]:
                             st.markdown(response["message"])
                             st.session_state.response = response["message"]
-                    
-                    elif isinstance(response, Figure):
-                        st.pyplot(response)
-                    
+                            
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "message": response.get("message", response),
+                            "fig": response.get("fig", None)
+                        })
+
                     else:
                         st.markdown(response)
                         st.session_state.response = response
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "message": response,
+                            "fig": None
+                        })
                     
                 # Rating and feedback section
                 if response:  # Only show if there's a response to rate
@@ -245,11 +253,7 @@ def main():
                     except Exception as e:
                         st.error(f"Failed to log feedback: {str(e)}")
 
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "message": response.get("message", response),
-                    "fig": response.get("fig", None)
-                })
+                
                    
             except Exception as e:
                 st.error(f"⚠️ Processing error: {str(e)}")
