@@ -201,7 +201,7 @@ def main():
                         # If there's a figure, show it
                         if "fig" in response and response["fig"] is not None:
                             fig = response["fig"]
-                            st.pyplot(fig, width=300)
+                            st.pyplot(fig, width=400)
                         
                         # If there's a message, display it
                         if "message" in response and response["message"]:
