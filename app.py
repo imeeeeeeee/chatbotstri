@@ -205,7 +205,6 @@ def main():
         with st.spinner("🔍 Analyzing..."):
             try:
                 response = st.session_state.chatbot.invoke(prompt)
-                st.session_state.response = response["message"]
                 with st.chat_message("assistant"):
                     if isinstance(response, dict):
                         # If there's a figure, show it
@@ -216,12 +215,14 @@ def main():
                         # If there's a message, display it
                         if "message" in response and response["message"]:
                             st.markdown(response["message"])
+                            st.session_state.response = response["message"]
                     
                     elif isinstance(response, Figure):
                         st.pyplot(response)
                     
                     else:
                         st.markdown(response)
+                        st.session_state.response = response
                     
                 # Rating and feedback section
                 if response:  # Only show if there's a response to rate
@@ -246,7 +247,7 @@ def main():
 
                 st.session_state.messages.append({
                     "role": "assistant",
-                    "message": response.get("message", ""),
+                    "message": response.get("message", response),
                     "fig": response.get("fig", None)
                 })
                    
