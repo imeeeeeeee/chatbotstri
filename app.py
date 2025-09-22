@@ -270,12 +270,25 @@ def main():
             try:
                 response = st.session_state.chatbot.invoke(prompt)
                 st.session_state.response = response
-                if isinstance(response, dict) and "fig" in response:
-                        st.pyplot(response["fig"])
-                elif isinstance(response, Figure):
+                with st.chat_message("assistant"):
+                    if isinstance(response, dict):
+                        # If there's a figure, show it
+                        if "fig" in response and response["fig"] is not None:
+                            st.pyplot(response["fig"])
+                        
+                        # If there's a message, display it
+                        if "message" in response and response["message"]:
+                            st.markdown(response["message"])
+                        
+                        # # If there's data, display it in a nice table
+                        # if "data" in response and response["data"] is not None:
+                        #     st.dataframe(response["data"])
+                    
+                    elif isinstance(response, Figure):
                         st.pyplot(response)
-                else:
-                    st.markdown(response)
+                    
+                    else:
+                        st.markdown(response)
                 if response:  # Only show if there's a response to rate
                     st.write("---")  # Visual separator
                     st.markdown("**Help us improve!** Rate this response:")
