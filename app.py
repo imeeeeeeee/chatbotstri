@@ -274,7 +274,9 @@ def main():
                     if isinstance(response, dict):
                         # If there's a figure, show it
                         if "fig" in response and response["fig"] is not None:
-                            st.pyplot(response["fig"])
+                            fig = response["fig"]
+                            fig.set_size_inches(8,6)
+                            st.pyplot(fig)
                         
                         # If there's a message, display it
                         if "message" in response and response["message"]:
