@@ -189,6 +189,10 @@ def main():
                     st.markdown(m["message"])
             else:
                 st.markdown(m.get("text", ""))
+            if m["role"] == "user":
+                if m.get("content"):
+                    st.markdown(m["content"])
+
 
     # Handle user input
     if prompt := st.chat_input("Hello, I'm Astrid, how can I help you?"):
