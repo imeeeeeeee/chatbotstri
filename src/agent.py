@@ -180,16 +180,14 @@ class Agent:
             print(f"Generated code: {code}")
             # Execute the code if it is a code generation query
             response = self.execute_code(code)
-            print(f"Execution result: {response}")
 
-            if q_class == 2:
-                return response
-            
             final_answer = self.structure_final_answer(query, response)
-            return final_answer
+            response["message"] = final_answer
+            return response
         except Exception as e:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
 
