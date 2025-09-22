@@ -323,7 +323,7 @@ ANSWER_PROMPT = f"""
 
         RULES & FORMATTING
                 - Sector codes must always be translated into their full names using the provided {SECTOR_CODES} mapping.
-                - All scores must be rounded to **two decimal places**.
+                - All scores must be rounded to **four decimal places**.
                 - Always state which country, sector, and year(s) the score refers to.
                 - Never use “better”/“worse”; instead say “more restrictive” / “less restrictive” / “above OECD average” / “below OECD average”.
                 - If multiple countries/sectors are compared, clearly structure the comparison in a table-like or bullet-point style.
