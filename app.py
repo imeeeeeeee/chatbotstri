@@ -49,6 +49,8 @@ def initialize_session():
         st.session_state.prompt = ""
     if "response" not in st.session_state:
         st.session_state.response = ""
+    if "fig" not in st.session_state:
+        st.session_state.fig = None
 
 def show_data_overview(df):
     """Display comprehensive data overview"""
@@ -195,12 +197,13 @@ def main():
         with st.spinner("🔍 Analyzing..."):
             try:
                 response = st.session_state.chatbot.invoke(prompt)
-                st.session_state.response = response
+                st.session_state.response = response["message"]
                 with st.chat_message("assistant"):
                     if isinstance(response, dict):
                         # If there's a figure, show it
                         if "fig" in response and response["fig"] is not None:
                             fig = response["fig"]
+                            st.session_state.fig = fig
                             st.pyplot(fig, width=600)
                         
                         # If there's a message, display it
