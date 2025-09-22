@@ -89,7 +89,6 @@ class Agent:
                     "role": "user", "content": user_content,
                 },
             ],
-            max_tokens=self.max_tokens,
             temperature=0.5
         )
         
@@ -188,6 +187,7 @@ class Agent:
             # Handle exceptions gracefully
             return f"An error occurred while processing your query: {str(e)}"
         
+
 
 
 
