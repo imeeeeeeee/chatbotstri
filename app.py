@@ -180,11 +180,15 @@ def main():
     st.subheader("Analysis Conversation")
     
     # Display chat history
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-            if "plot" in msg and msg["plot"]:
-                st.image(msg["plot"], use_column_width=True)
+    for m in st.session_state.messages:
+        with st.chat_message(m["role"]):
+            if m["role"] == "assistant":
+                if m.get("fig") is not None:
+                    st.pyplot(m["fig"], width = 600)
+                if m.get("message"):
+                    st.markdown(m["message"])
+            else:
+                st.markdown(m.get("text", ""))
 
     # Handle user input
     if prompt := st.chat_input("Hello, I'm Astrid, how can I help you?"):
@@ -202,27 +206,24 @@ def main():
                     if isinstance(response, dict):
                         # If there's a figure, show it
                         if "fig" in response and response["fig"] is not None:
-                            fig = response["fig"]
-                            st.session_state.fig = fig
-                            st.pyplot(fig, width=600)
+                            st.pyplot(response["fig"], width=600)
+                            st.session_state.fig = response["fig"]
                         
                         # If there's a message, display it
                         if "message" in response and response["message"]:
                             st.markdown(response["message"])
-                        
-                        # # If there's data, display it in a nice table
-                        # if "data" in response and response["data"] is not None:
-                        #     st.dataframe(response["data"])
                     
                     elif isinstance(response, Figure):
                         st.pyplot(response)
                     
                     else:
                         st.markdown(response)
+                    
+                # Rating and feedback section
                 if response:  # Only show if there's a response to rate
-                    st.write("---")  # Visual separator
+                    st.write("---")
                     st.markdown("**Help us improve!** Rate this response:")
-                        
+                    
                     try:
                         with st.form("feedback_form"):
                             cols = st.columns(8)
@@ -239,13 +240,12 @@ def main():
                     except Exception as e:
                         st.error(f"Failed to log feedback: {str(e)}")
 
-
                 st.session_state.messages.append({
                     "role": "assistant",
-                    "content": response,
-                    #"plot": plot
+                    "message": response.get("message", ""),
+                    "fig": response.get("fig", None)
                 })
-
+                   
             except Exception as e:
                 st.error(f"⚠️ Processing error: {str(e)}")
 
