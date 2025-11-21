@@ -1,4 +1,4 @@
-from .config import SECTOR_CODES, KNOWLEDGE_BASE
+from .config import SECTOR_CODES, KNOWLEDGE_BASE, SECTORS_AVERAGE, OECD_AVERAGE
 
 CLASSIFICATION_PROMPT = """
         Classify the following user query into exactly one of these categories:
@@ -25,6 +25,9 @@ CLASSIFICATION_PROMPT = """
         6: Summary Query – Asking for a broad summary of a country’s situation in STRI (overview, general context, not just a score).  
         Example: 'Give me a summary of France’s STRI situation.'
 
+        7: Reforms Query – Asking for policy reform that occured in a country.
+        Example: 'What reforms has Canada implemented in the telecom sector?'
+
         Classification Rules (mutually exclusive, priority ordered):
         1. If the query asks for a visualization (mentions 'show', 'plot', 'chart', 'graph', 'visualize', etc.), classify as Graphical (2).  
         2. Else if the query compares multiple countries/sectors/years, classify as Comparative (3).  
@@ -33,8 +36,10 @@ CLASSIFICATION_PROMPT = """
         5. Else if the query asks for specific scores, trends, or numeric values (single country/sector/time), classify as Score (1).  
         6. Else if the query asks about dataset structure, coverage, or methodology, classify as General (0).  
         7. Else classify as Unrelated (5).  
+        8. Never classify a query into multiple categories.
+        9. Never classify a query as Graphical (2) unless it explicitly requests a visualization with keywords ('show', 'plot', 'chart', 'graph', 'visualize').
 
-        Return only the class number (0–6).
+        Return only the class number (0–7).
 """
 
 
@@ -67,6 +72,7 @@ STRUCTURE_PROMPT_1 = f"""
         - If multiple countries are mentioned, include all in the "country" list.
         - If multiple sectors are mentioned, set "comparison": true.
         - If policy_area is not explicitly specified, always default to "STRI".
+        - Unless it's classified as Graphical (2), set "needs_plot": false.
 
         OUTPUT REQUIREMENTS
         - Output strictly in JSON format. No explanations, no extra text.
@@ -199,7 +205,25 @@ STRUCTURE_PROMPT_2 = {
               "countries": ["<ISO3>", ...],
               "years": [<year>, ...],
               "intent": "<intent>"
-            }}"""
+            }}""",
+
+        7: f"""Convert the user's request about reforms into structured JSON.
+                Rules:
+                - Extract the country (ISO3). If multiple countries are mentioned, include all in a list.
+                - Extract the sector (code from {SECTOR_CODES}). If none mentioned, leave empty.
+                - Extract all the relevant years or time spans, otherwise default to 2024.
+                - Intent must clearly describe that the user is asking about reforms.
+        
+                Output JSON only, no explanations.
+        
+                Format:
+                {{
+                  "query_type": "reforms",
+                  "countries": ["<ISO3>", ...],
+                  "sectors": ["<sector_code>", ...],
+                  "years": [<year>, ...],
+                  "intent": "<intent>"
+                }}""",
 }
 
 DEFINITION_PROMPT = f"""
@@ -218,7 +242,7 @@ DEFINITION_PROMPT = f"""
 """
 
 
-CODING_PROMPT = """
+CODING_PROMPT = f"""
         You are a Python code generator that produces code to query and visualize a pandas DataFrame named `df` from structured user queries.
 
         DATA MODEL (df columns)
@@ -237,18 +261,40 @@ CODING_PROMPT = """
                 - Always assign the final output to a variable named `result`. Nothing else should be returned.
                 - The generated code must apply a filter on the `sector` field using the sector value(s) from the structured query. If the query sector is 'ALLSEC', filter with sector == 'ALLSEC'. Do not skip this.
                 - Unless the user explicitly asks for an average/mean, NEVER compute averages or means across countries, sectors, or years.
-                - Do NOT call .mean(), .agg({'score':'mean'}), or .groupby(...).mean(), unless the query explicitly requests an average.
+                - Do NOT call .mean(), .agg({{'score':'mean'}}), or .groupby(...).mean(), unless the query explicitly requests an average.
                 - When asked about scores, provide the exact stored values for the specified country/sector/year. Do not derive them by averaging anything.
                 - When a general (overall or per-sector) STRI score is required, include `policy_area == 'STRI'` in the filter.
                 - The code must be efficient, handle missing data gracefully, and follow pandas best practices.
                 - Never call `.show()` on plots.
                 - Never call `exec()`.
+                - Never generate a plot unless explicitly requested (category: Graphical (2)).
 
         SUMMARY REQUESTS
-                - For summary requests, compute and report:
-                1) The general score (policy_area == 'STRI', sector == 'ALLSEC') for the specified country and year.
-                2) The three most restricted sectors (highest scores) and three least restricted sectors (lowest scores) for that country and year, using policy_area == 'STRI' and excluding 'ALLSEC'.
-                3) Comparison with the previous year: delta = current_year_general - previous_year_general (if previous year exists). Indicate direction (increase/decrease) and interpret as liberalisation if the score decreased.
+                - For summary requests, compute and report the following depending on whether the summary concerns a country or a sector:
+                --- COUNTRY SUMMARIES ---
+                For queries focused on a specific country (summary by country):
+                        1) Compute and report the general STRI score for the specified country and year:
+                        - Filter with (policy_area == 'STRI') AND (sector == 'ALLSEC').
+                        2) Identify and list the four most restrictive and four least restrictive sectors for that country and year:
+                        - Use only policy_area == 'STRI' and exclude sector == 'ALLSEC'.
+                        - Restrictiveness is measured *relative to the sector’s global average score* found in {SECTORS_AVERAGE}.
+                                * For each sector, compute deviation = sector_score - SECTOR_AVERAGES[sector].
+                                * Positive deviation => more restrictive than average.
+                                * Negative deviation => less restrictive than average.
+                        - Rank sectors by deviation (descending) to find the most restrictive,
+                        and by deviation (ascending) to find the least restrictive.
+                        3) Include a comparison with the previous year’s general score if available:
+                        - delta = current_year_general - previous_year_general
+                        - If delta < 0 → interpret as “liberalisation”.
+                        - If delta > 0 → interpret as “increased restrictiveness”.
+                        - Always state both current and previous year values when available.
+                        4) Include a short textual summary interpreting:
+                        - whether the country became more or less restrictive compared to the previous year,
+                        - which sectors are performing notably above or below their global sector averages.
+                --- SECTOR SUMMARIES ---
+                For queries focused on a specific sector (summary by sector):
+                        The definition of the sector from {KNOWLEDGE_BASE} must be included at the start of the code as a comment.
+                        1) The top 5 least restrictive countries (lowest scores) and top 5 most restrictive countries (highest scores) for that sector and year, using policy_area == 'STRI'.
 
         VISUALIZATION RULES (Matplotlib only)
                 - If the structured query requests a figure, create one Matplotlib figure and assign it to a variable named `fig`. Include `fig` inside `result`.
@@ -258,12 +304,12 @@ CODING_PROMPT = """
                 - Always put ticks at 90 degrees for readability if many bars.
                 - Always add axis labels and a clear title.
                 - Always put enough space around the plot elements (use `fig.tight_layout()`).
+                - The ticks on the X axis should always be at 90 degrees.
                 - Consistent plot templates:
                         A) Ranking bar chart (multiple countries or sectors, one year):
                                 - X axis: entity labels (countries or sectors)
                                 - Y axis: score
-                                - Sort by score descending before plotting
-                                - Rotate x tick labels for readability if many bars
+                                - Sort by score ascending before plotting
                                 - Add axis labels and a clear title
                                 - Use `fig, ax = plt.subplots()` then `ax.bar(...)`
                         B) Time series line (single entity over multiple years):
@@ -276,6 +322,9 @@ CODING_PROMPT = """
                                 - Years sorted ascending
                                 - After plotting, call `fig.tight_layout()`.
                                 - Include the underlying filtered DataFrame (or a small, tidy table like entity + year + score) in `result` for transparency alongside `fig`.
+                - figsize must be (6,3), dpi=100.
+                - if plotting scores in a sector, add a horizontal line for the sector average from {SECTORS_AVERAGE}.
+                - if plotting general STRI scores for a country, add a horizontal line for the overall average across all countries for that year {OECD_AVERAGE}.
 
         EDGE CASES & ROBUSTNESS
                 - If filters produce no rows, set `result` to a dict with an explanatory message and empty data (and no fig).
@@ -298,7 +347,7 @@ CODING_PROMPT = """
         IMPLEMENTATION CHECKLIST (enforce in code you generate)
                 1) Build boolean masks from the structured query: country, sector (MANDATORY), year(s), and policy_area (use 'STRI' where general scores are intended).
                 2) Apply masks with `.loc[...]`.
-                3) For summaries: compute general (ALLSEC) current and previous year; compute top/bottom 3 sectors (exclude ALLSEC) by score; compute delta.
+                3) For summaries: compute general (ALLSEC) current and previous year; compute top/bottom 4 sectors (exclude ALLSEC) by score; compute delta.
                 4) For plots: follow the Visualization Rules above, including sorting by score for rankings and chronological sorting for time series.
                 5) Never compute means unless the user explicitly asked.
 
@@ -319,10 +368,18 @@ ANSWER_PROMPT = f"""
         * If plot (`result['fig']`) → explain the main trends and what the visualization shows.
                 - Always include interpretation in terms of restrictiveness (higher = more restrictive, lower = more liberalised).
                 - Always interpret year-to-year changes: a decrease = liberalisation, an increase = more restrictions.
-                - If summary request → include general STRI score, top 3 most restricted and least restricted sectors (by full sector name), and previous-year comparison.
+                - If summary request → include general STRI score, top 4 most restricted and least restricted sectors (by full sector name), and previous-year comparison.
+        * If asked about Austria's summary, include this sentence at the end: "Austria’s reforms focus on adjusting administrative and investment-related conditions: they reduced the documentation required for business visas, introduced local-presence requirements in telecoms, expanded foreign-investment screening, and modified foreign-equity rules in legal services. Additionally, Austria created a new intra-corporate transferee permit with longer validity and deregulated parts of the fixed-line telephony market."
 
         RULES & FORMATTING
                 - Sector codes must always be translated into their full names using the provided {SECTOR_CODES} mapping.
+                - If asked for a sector summary, start with the definition of the sector from the {KNOWLEDGE_BASE}.
+                - In the summary questions, always include:
+                        1) The overall STRI score for the country and year, followed by (fig 1) as a reference to a figure.
+                        2) The top 4 most restricted sectors (by full sector name) and their scores.
+                        3) The bottom 4 least restricted sectors (by full sector name) and their scores.
+                                After the bottom and top sectors, include (fig 3) as a reference to a figure.
+                        4) The previous year's STRI score for the country and sector.   
                 - All scores must be rounded to **four decimal places**.
                 - Always state which country, sector, and year(s) the score refers to.
                 - Never use “better”/“worse”; instead say “more restrictive” / “less restrictive” / “above OECD average” / “below OECD average”.
