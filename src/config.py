@@ -1,7 +1,7 @@
 import streamlit as st
 DATA_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\stri_regdb_2024.dta"
 DIGITAL_STRI_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\dstri_regdb_2024.dta"
-NEW_DATA_PATH = "new_data.csv"
+NEW_DATA_PATH = "C:\\Users\\Joksimovic_j\\Documents\\stri-chatbot\\stri_oecdstat_2014_2024_copy.xlsx"
 OPENAI_API_KEY = st.secrets["openai_api_key"]
 FEEDBACK_FILE = "./feedback.jsonl"
 SECTOR_CODES = {
@@ -28,6 +28,33 @@ SECTOR_CODES = {
     "PSARC": "ARCHITECTURE SERVICES",
     "PSENG": "ENGINEERING SERVICES"
 }
+
+OECD_AVERAGE = 0.22
+
+SECTORS_AVERAGE = {
+    "PSACC": 0.322659730911255,      # Accounting services
+    "LSCAR": 0.233585208654404,      # Cargo-handling
+    "FSINS": 0.208545953035355,      # Insurance
+    "TRRAI": 0.314981997013092,      # Rail freight transport
+    "CO":    0.220207899808884,      # Construction
+    "TRAIR": 0.399120539426804,      # Air transport
+    "PSARC": 0.241186633706093,      # Architecture services
+    "PSENG": 0.21505418419838,       # Engineering services
+    "PSLEG": 0.343156576156616,      # Legal services
+    "ASBRD": 0.304061651229858,      # Broadcasting
+    "TC":    0.232308134436607,      # Telecommunication
+    "CS":    0.198586478829384,      # Computer services
+    "TRMAR": 0.2597716152668,        # Maritime transport
+    "FSBNK": 0.225348696112633,      # Commercial banking
+    "TRROF": 0.213518902659416,      # Road freight transport
+    "CR":    0.252106219530106,      # Courier services
+    "LSFGT": 0.203660130500793,      # Freight-forwarding
+    "LSSTG": 0.227044105529785,      # Storage and warehouse
+    "DS":    0.193911269307137,      # Distribution services
+    "ASSOU": 0.192660689353943,      # Sound recording
+    "LSCUS": 0.222166672348976       # Customs brokerage
+}
+
 
 SECTOR_DESCRIPTIONS = {
     "CS": "Computer services are defined as computer programming, consultancy and related activities and information service activities (ISIC Rev 4 code 62 and 63). Major exporters are the European Union, India and the United States. The importance of computer services has grown significantly in the past decades driving the development of a data-driven global economy. Computer services are mainly traded business to business. Supply of services across borders are prominent in this sector, especially as the quality of the communication infrastructure improves worldwide. Nonetheless, cross-border supplies are often complemented with technical expertise for installation, use and maintenance requiring travel for computer engineers and other technical experts.",
