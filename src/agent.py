@@ -15,7 +15,7 @@ class Agent:
         self.df = df
         self.model = model
         self.max_tokens = max_tokens
-        self.client = OpenAI()
+        self.client = OpenAI(api_key=OPENAI_API_KEY)
 
     def classify_query(self, query: str) -> int:
         """Classify the query to determine the type of response needed."""
@@ -286,3 +286,4 @@ class Agent:
             # Handle exceptions gracefully
             return f"An error occurred agent-side while processing your query: {str(e)}"
         
+
