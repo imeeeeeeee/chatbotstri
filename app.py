@@ -4,7 +4,6 @@ from venv import logger
 import certifi
 from matplotlib.figure import Figure
 from src.agent import Agent
-from src.chatbot import Chatbot
 import streamlit as st
 import pandas as pd
 from src.data_loader import load_data
@@ -32,8 +31,11 @@ AUTH_PASSWORD = st.secrets["password"]
 if authenticator != AUTH_PASSWORD:
     st.warning("Please enter the correct password to access the app.")
     st.stop()
-    
-os.environ["OPENAI_API_KEY"] = st.secrets["openai_api_key"]
+
+api_key = st.secrets["openai_api_key"]
+
+# Set the API key
+openai.api_key = api_key
 
 def initialize_session():
     """Initialize session state variables"""
@@ -109,10 +111,10 @@ def main():
     with st.sidebar:
         st.header("Configuration")
         sample_size = st.slider("Data Sample Size (%)", 1, 100, 100)
-        max_tokens = st.slider("Response Length", 50, 1500, 1000)
+        max_tokens = st.slider("Response Length", 50, 4096, 4096, step=50)
         model_version = st.selectbox(
             "AI Model Version",
-            ["gpt-4o", "gpt-4o-mini"],
+            ["gpt-4.1"],
             index=0
         )
 
@@ -142,8 +144,7 @@ def main():
             Example: "Give me a summary of Australia’s STRI profile."
 
         Important Notes
-        - We’re currently only working with the indices — the regulatory measures database will be integrated later. So for now, no questions about specific measures, please.
-        - When asking about the most/least restrictive sector, it's in terms of absolute values and not compared to the sample average.
+        - We’re currently only working with the indices — the legislative measures database will be integrated later. So for now, no questions about specific measures, please.
         """)
 
     # Data loading with caching
@@ -184,15 +185,16 @@ def main():
         with st.chat_message(m["role"]):
             if m["role"] == "assistant":
                 if m.get("fig") is not None:
-                    st.pyplot(m["fig"], width = 600)
+                    st.pyplot(m["fig"])
                 if m.get("message"):
                     st.markdown(m["message"])
+                if m.get("images") is not None:
+                    for i, img in enumerate(m["images"]):
+                        st.image(img, width=600, caption=f"Figure {i+1}")
             else:
                 st.markdown(m.get("text", ""))
-            if m["role"] == "user":
-                if m.get("content"):
-                    st.markdown(m["content"])
-
+            if m["role"] == "user" and m.get("content"):
+                st.markdown(m["content"])
 
     # Handle user input
     if prompt := st.chat_input("Hello, I'm Astrid, how can I help you?"):
@@ -209,34 +211,34 @@ def main():
                     if isinstance(response, dict):
                         # If there's a figure, show it
                         if "fig" in response and response["fig"] is not None:
-                            st.pyplot(response["fig"], width=600)
+                            st.pyplot(response["fig"])
                             st.session_state.fig = response["fig"]
                         
                         # If there's a message, display it
                         if "message" in response and response["message"]:
                             st.markdown(response["message"])
                             st.session_state.response = response["message"]
-                            
+                        if "images" in response and response["images"]:
+                            for i, img in enumerate(response["images"]):
+                                st.image(img, width=600, caption=f"Figure {i+1}")
                         st.session_state.messages.append({
                             "role": "assistant",
-                            "message": response.get("message", response),
-                            "fig": response.get("fig", None)
+                            "message": response.get("message", ""),
+                            "fig": response.get("fig", None),
+                            "images": response.get("images", None)
                         })
-
+                    
                     else:
                         st.markdown(response)
                         st.session_state.response = response
-                        st.session_state.messages.append({
-                            "role": "assistant",
-                            "message": response,
-                            "fig": None
-                        })
+                        st.session_state.messages.append({"role": "assistant", "message": response, "fig": None})
                     
                 # Rating and feedback section
                 if response:  # Only show if there's a response to rate
                     st.write("---")
                     st.markdown("**Help us improve!** Rate this response:")
-                    
+
+        
                     try:
                         with st.form("feedback_form"):
                             cols = st.columns(8)
@@ -253,10 +255,8 @@ def main():
                     except Exception as e:
                         st.error(f"Failed to log feedback: {str(e)}")
 
-                
-                   
             except Exception as e:
-                st.error(f"⚠️ Processing error: {str(e)}")
+                st.error(f"⚠️ Processing error - streamlit side: {str(e)}")
 
 if __name__ == "__main__":
     main()
