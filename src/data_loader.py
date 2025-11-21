@@ -24,13 +24,10 @@ def load_data(path, sample_frac=0.15):
             df = pd.read_parquet(path)
         elif ext == '.csv':
             df = pd.read_csv(path, low_memory=False)
-            # Drop the extra column if it exists
-            if "Unnamed: 0" in df.columns:
-                df = df.drop(columns=["Unnamed: 0"])
             return df
         elif ext in ('.xls', '.xlsx'):
             df = pd.read_excel(path)
-            return _clean_dataframe(df)
+            return df
         else:
             raise ValueError(f"Unsupported file format: {ext}")
         
