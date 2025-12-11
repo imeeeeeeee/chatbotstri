@@ -4,10 +4,11 @@ from venv import logger
 import certifi
 from matplotlib.figure import Figure
 from src.agent import Agent
+from src.multi_agent import MultiDBAgent
 import streamlit as st
 import pandas as pd
 from src.data_loader import load_data
-from src.config import NEW_DATA_PATH
+from src.config import NEW_DATA_PATH, REFORMS_DATA_PATH
 from datetime import datetime
 import openai
 from streamlit_gsheets import GSheetsConnection
@@ -56,29 +57,30 @@ def initialize_session():
 
 def show_data_overview(df):
     """Display comprehensive data overview"""
-    with st.expander("📊 Dataset Overview"):
-        tab1, tab2, tab3 = st.tabs(["Preview", "Statistics", "Data Types"])
-        
-        with tab1:
-            st.dataframe(df, use_container_width=True)
-        
-        with tab2:
-            st.write("Summary Statistics")
-            st.dataframe(df.describe(include='all'), use_container_width=True)
-        
-        with tab3:
-            st.write("Data Types and Missing Values")
-            dtype_df = pd.DataFrame({
-                'Column': df.columns,
-                'Type': df.dtypes,
-                'Missing Values': df.isna().sum()
-            })
-            st.dataframe(dtype_df, use_container_width=True)
+    #with st.expander("📊 Dataset Overview"):
+    tab1, tab2, tab3 = st.tabs(["Preview", "Statistics", "Data Types"])
+    
+    with tab1:
+        st.dataframe(df, use_container_width=True)
+    
+    with tab2:
+        st.write("Summary Statistics")
+        st.dataframe(df.describe(include='all'), use_container_width=True)
+    
+    with tab3:
+        st.write("Data Types and Missing Values")
+        dtype_df = pd.DataFrame({
+            'Column': df.columns,
+            'Type': df.dtypes,
+            'Missing Values': df.isna().sum()
+        })
+        st.dataframe(dtype_df, use_container_width=True)
 
 conn = st.connection("gsheets", type=GSheetsConnection)
 existing_data = conn.read(worksheet="Sheet1", usecols=list(range(4)), ttl=5)
 
 def log_feedback(query, model_response, score):
+    # return
     """Store user feedback in JSONL format with timestamp, query, response, and score."""
     try:
         feedback_entry = {
@@ -142,33 +144,53 @@ def main():
         - Summary Query
             Requests for a general overview of a country’s current STRI situation.
             Example: "Give me a summary of Australia’s STRI profile."
+        - Reforms Query
+            Inquiries about regulatory reforms, legislative changes, or policy updates affecting STRI scores.
+            Example: "What reforms did Canada implement in 2022 affecting its STRI?"
 
         Important Notes
-        - We’re currently only working with the indices — the legislative measures database will be integrated later. So for now, no questions about specific measures, please.
-        """)
-
+        - We’re currently working with the indices and the Annex A of the Trends' Note — the legislative measures database will be integrated later. So for now, no questions about specific measures, please.
+        """
+)
     # Data loading with caching
     @st.cache_data(show_spinner="Loading dataset...")
-    def cached_load(path, sample):
-        return load_data(path, sample/100)
+    def cached_load_all(path_quant, path_reforms, sample_quant, sample_reforms):
+        df_quant = load_data(path_quant, sample_quant / 100)
+        df_reforms = load_data(path_reforms, sample_reforms / 100)
+        return df_quant, df_reforms
 
     try:
-        df = cached_load(NEW_DATA_PATH, sample_size)
+        df_quant, df_reforms = cached_load_all(NEW_DATA_PATH, REFORMS_DATA_PATH, sample_size, sample_size)
+        st.session_state.df_quant = df_quant
+        st.session_state.df_reforms = df_reforms
         st.session_state.data_loaded = True
     except Exception as e:
         st.error(f"🚨 Data loading failed: {str(e)}")
         return
 
     if st.session_state.data_loaded:
-        st.success(f"✅ Successfully loaded {len(df):,} records")
-        show_data_overview(df)
+        df_quant = st.session_state.df_quant
+        df_reforms = st.session_state.df_reforms
+
+        st.success(
+            f"Loaded quantitative STRI data ({len(df_quant):,} rows) "
+            f"and reforms data ({len(df_reforms):,} rows)."
+        )
+
+        with st.expander("📊 STRI quantitative dataset"):
+            show_data_overview(df_quant)
+
+        with st.expander("📘 Reforms qualitative dataset"):
+            show_data_overview(df_reforms)
+
 
     # Initialize chatbot once
     if st.session_state.data_loaded and not st.session_state.chatbot:
         with st.spinner("🧠 Initializing AI analyst..."):
             try:
-                st.session_state.chatbot = Agent(
-                    df=df,
+                st.session_state.chatbot = MultiDBAgent(
+                    df_quant=df_quant,
+                    df_reforms=df_reforms,
                     model=model_version,
                     max_tokens=max_tokens
                 )
