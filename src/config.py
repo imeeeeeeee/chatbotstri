@@ -1,8 +1,8 @@
 import streamlit as st
 DATA_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\stri_regdb_2024.dta"
 DIGITAL_STRI_PATH = "V:\\STRI\\NOBACKUP\\stri_calculation_data\\dstri_regdb_2024.dta"
-NEW_DATA_PATH = "C:\\Users\\Joksimovic_j\\Documents\\stri-chatbot\\stri_oecdstat_2014_2024_copy.xlsx"
-REFORMS_DATA_PATH = "C:\\Users\\Joksimovic_j\\Documents\\stri-chatbot\\reforms.csv"
+NEW_DATA_PATH = "stri_oecdstat_2014_2024_copy.xlsx"
+REFORMS_DATA_PATH = "reforms.csv"
 OPENAI_API_KEY = st.secrets["openai_api_key"]
 FEEDBACK_FILE = "./feedback.jsonl"
 SECTOR_CODES = {
@@ -85,5 +85,6 @@ SECTOR_DESCRIPTIONS = {
 STRI_DEFINITION = """
 The OECD Services Trade Restrictiveness Index (STRI) is a unique tool that offers an overview of regulatory barriers across 22 major sectors and 51 countries. Updated annually, the STRI also monitors recent regulatory trends, facilitates benchmarking of services policies against global best practices, and enables analysis of the impact of reform options.
 """
+
 
 KNOWLEDGE_BASE = [SECTOR_DESCRIPTIONS, STRI_DEFINITION]
