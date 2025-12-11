@@ -4,13 +4,14 @@ import regex as re
 import pandas as pd
 from openai import OpenAI
 from .prompt import STRUCTURE_PROMPT_1, STRUCTURE_PROMPT_2
+from .config import OPENAI_API_KEY
 
 class ReformsAgent:
     def __init__(self, df_reforms: pd.DataFrame, model: str = "gpt-4.1", max_tokens: int = 2048):
         self.df = df_reforms
         self.model = model
         self.max_tokens = max_tokens
-        self.client = OpenAI()
+        self.client = OpenAI(api_key=OPENAI_API_KEY)
 
     def _structure_reforms_query(self, query: str) -> dict:
         """Use your STRUCTURE_PROMPT_2[7] to extract countries, sectors, years."""
@@ -111,3 +112,4 @@ class ReformsAgent:
             "reforms_rows": rows,
             "message": narrative,
         }
+
