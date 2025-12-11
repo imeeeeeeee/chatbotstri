@@ -4,10 +4,11 @@ from openai import OpenAI
 from .agent import Agent as QuantAgent
 from .reforms_agent import ReformsAgent
 from .prompt import CLASSIFICATION_PROMPT, ANSWER_PROMPT, GUARDRAIL_PROMPT
+from .config import OPENAI_API_KEY
 
 class MultiDBAgent:
     def __init__(self, df_quant, df_reforms, model: str = "gpt-4.1", max_tokens: int = 4096):
-        self.client = OpenAI()
+        self.client = OpenAI(api_key=OPENAI_API_KEY)
         self.model = model
         self.max_tokens = max_tokens
         self.quant_agent = QuantAgent(df_quant, model=model, max_tokens=max_tokens)
@@ -161,3 +162,4 @@ class MultiDBAgent:
                 "images": [],
                 "reforms_rows": [],
             }
+
